@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ridge Auto — Small Business Website Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #c0392b;
+    --red-dark: #922b21;
+    --red-bright: #e74c3c;
+    --cream: #fdf6ee;
+    --warm: #f5e6d3;
+    --charcoal: #1a1a1a;
+    --dark: #2c2c2c;
+    --muted: #7a6a5a;
+    --border: rgba(192,57,43,0.15);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--cream);
+    color: var(--charcoal);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--charcoal);
+    padding: 0 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem; letter-spacing: 0.04em;
+    color: white;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-logo span { color: var(--red-bright); }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links a {
+    color: rgba(255,255,255,0.65); font-size: 0.85rem; font-weight: 500;
+    text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: white; }
+  .nav-cta {
+    background: var(--red); color: white;
+    padding: 8px 20px; border-radius: 4px;
+    font-size: 0.82rem; font-weight: 600; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .nav-cta:hover { background: var(--red-bright); color: white; }
+
+  /* HERO */
+  .hero {
+    background: var(--charcoal);
+    padding: 0;
+    min-height: 520px;
+    display: flex; align-items: stretch;
+    position: relative; overflow: hidden;
+  }
+  .hero-pattern {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 40px,
+      rgba(192,57,43,0.04) 40px,
+      rgba(192,57,43,0.04) 41px
+    );
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 72px 48px;
+    max-width: 680px;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3);
+    color: var(--red-bright); font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; margin-bottom: 24px;
+  }
+  .hero-tag::before { content: '●'; font-size: 8px; }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 7vw, 88px);
+    line-height: 0.95; letter-spacing: 0.01em;
+    color: white; margin-bottom: 20px;
+  }
+  .hero-title em { color: var(--red-bright); font-style: normal; }
+  .hero-desc {
+    font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.6);
+    max-width: 480px; margin-bottom: 36px;
+    font-weight: 300;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--red); color: white;
+    padding: 13px 28px; border-radius: 4px;
+    font-weight: 600; font-size: 0.9rem; text-decoration: none;
+    transition: background 0.2s, transform 0.15s; letter-spacing: 0.02em;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-primary:hover { background: var(--red-bright); transform: translateY(-2px); }
+  .btn-secondary {
+    background: transparent; color: rgba(255,255,255,0.8);
+    padding: 13px 28px; border-radius: 4px;
+    font-weight: 500; font-size: 0.9rem; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+  .hero-side {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 40px;
+    position: relative;
+  }
+  .hero-stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; max-width: 300px;
+  }
+  .hero-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 20px;
+    text-align: center;
+  }
+  .hero-stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem; color: var(--red-bright);
+    line-height: 1; margin-bottom: 4px;
+  }
+  .hero-stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.45); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* SERVICES */
+  .services { padding: 80px 48px; background: var(--cream); }
+  .section-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--red);
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .section-eyebrow::before { content: ''; width: 24px; height: 2px; background: var(--red); }
+  .section-heading {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(36px, 5vw, 56px); letter-spacing: 0.01em;
+    color: var(--charcoal); margin-bottom: 48px; line-height: 1;
+  }
+  .services-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 2px;
+  }
+  .service-card {
+    background: white; padding: 32px 28px;
+    position: relative; overflow: hidden;
+    transition: background 0.2s;
+    cursor: default;
+  }
+  .service-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 4px; height: 0;
+    background: var(--red); transition: height 0.35s;
+  }
+  .service-card:hover::before { height: 100%; }
+  .service-card:hover { background: #fafafa; }
+  .service-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem; color: rgba(192,57,43,0.1);
+    line-height: 1; margin-bottom: 12px;
+  }
+  .service-icon { font-size: 1.8rem; margin-bottom: 14px; display: block; }
+  .service-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.15rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; margin-bottom: 8px;
+  }
+  .service-desc { font-size: 0.85rem; line-height: 1.6; color: var(--muted); }
+
+  /* WHY US */
+  .why { background: var(--charcoal); padding: 80px 48px; color: white; }
+  .why .section-eyebrow { color: var(--red-bright); }
+  .why .section-eyebrow::before { background: var(--red-bright); }
+  .why .section-heading { color: white; }
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+  .why-item { padding: 28px 24px; background: rgba(255,255,255,0.04); border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); }
+  .why-icon { font-size: 1.8rem; margin-bottom: 14px; }
+  .why-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; color: white; }
+  .why-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+  /* TESTIMONIALS */
+  .testimonials { padding: 80px 48px; background: var(--warm); }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .testimonial {
+    background: white; padding: 28px; border-radius: 8px;
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .testimonial:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+  .stars { color: var(--red); font-size: 0.85rem; margin-bottom: 12px; letter-spacing: 2px; }
+  .testimonial-text { font-size: 0.88rem; line-height: 1.7; color: var(--dark); margin-bottom: 16px; font-style: italic; }
+  .testimonial-author { display: flex; align-items: center; gap: 10px; }
+  .author-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--red); display: flex; align-items: center;
+    justify-content: center; font-size: 12px; font-weight: 700; color: white;
+  }
+  .author-name { font-size: 0.83rem; font-weight: 600; }
+  .author-loc { font-size: 0.72rem; color: var(--muted); }
+
+  /* CTA */
+  .cta {
+    background: var(--red); padding: 72px 48px;
+    text-align: center; color: white;
+  }
+  .cta h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 6vw, 72px); margin-bottom: 12px;
+    letter-spacing: 0.01em;
+  }
+  .cta p { font-size: 1rem; opacity: 0.8; margin-bottom: 32px; max-width: 440px; margin-left: auto; margin-right: auto; }
+  .cta-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: white; color: var(--red);
+    padding: 14px 32px; border-radius: 4px;
+    font-weight: 700; font-size: 0.95rem; text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+  /* FOOTER */
+  footer {
+    background: #111; color: rgba(255,255,255,0.5);
+    padding: 28px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.78rem;
+  }
+  .footer-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: white; }
+  .footer-brand span { color: var(--red-bright); }
+
+  /* Contact form */
+  .contact { padding: 80px 48px; background: white; }
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+  .contact-form { display: flex; flex-direction: column; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .form-control {
+    border: 1px solid rgba(0,0,0,0.12); border-radius: 4px;
+    padding: 10px 14px; font-family: 'Barlow', sans-serif;
+    font-size: 0.88rem; outline: none; background: var(--cream);
+    transition: border-color 0.2s;
+  }
+  .form-control:focus { border-color: var(--red); }
+  textarea.form-control { min-height: 100px; resize: vertical; }
+  .submit-btn {
+    background: var(--red); color: white; border: none; cursor: pointer;
+    padding: 12px 28px; border-radius: 4px; font-family: 'Barlow', sans-serif;
+    font-weight: 600; font-size: 0.9rem; align-self: flex-start;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .submit-btn:hover { background: var(--red-bright); transform: translateY(-1px); }
+  .contact-info h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; margin-bottom: 20px; }
+  .info-item { display: flex; gap: 14px; margin-bottom: 20px; align-items: flex-start; }
+  .info-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+  .info-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .info-value { font-size: 0.9rem; color: var(--dark); margin-top: 2px; }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero { flex-direction: column; }
+    .hero-content, .services, .why, .testimonials, .cta, .contact { padding: 48px 20px; }
+    .why-grid, .testimonials-grid, .contact-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Ridge<span>Auto</span></div>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#about">About</a>
+    <a href="#testimonials">Reviews</a>
+    <a href="#contact">Contact</a>
+    <a href="#contact" class="nav-cta">Book Appointment</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-pattern"></div>
+  <div class="hero-content">
+    <div class="hero-tag">Indianapolis, Indiana</div>
+    <h1 class="hero-title">
+      Auto Repair<br>
+      You Can <em>Trust.</em>
+    </h1>
+    <p class="hero-desc">
+      Family owned and operated for over 30 years. Honest diagnostics, fair pricing, and mechanics who treat your car like their own.
+    </p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn-primary">📅 Book a Service</a>
+      <a href="tel:3175550100" class="btn-secondary">📞 (317) 555-0100</a>
+    </div>
+  </div>
+  <div class="hero-side">
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">30+</div>
+        <div class="hero-stat-label">Years in Business</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">12K+</div>
+        <div class="hero-stat-label">Cars Serviced</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">4.9★</div>
+        <div class="hero-stat-label">Google Rating</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">100%</div>
+        <div class="hero-stat-label">Local Family</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="services" id="services">
+  <div class="section-eyebrow">What We Do</div>
+  <h2 class="section-heading">Our Services</h2>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <span class="service-icon">🔧</span>
+      <div class="service-name">General Repair</div>
+      <p class="service-desc">From brakes to belts, we handle all general maintenance and repairs with honest diagnostics and no upselling.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <span class="service-icon">🔍</span>
+      <div class="service-name">Engine Diagnostics</div>
+      <p class="service-desc">Check engine light on? We use the latest diagnostic tools to identify the exact issue and explain it in plain English.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <span class="service-icon">🛞</span>
+      <div class="service-name">Tires and Brakes</div>
+      <p class="service-desc">Tire rotation, alignment, brake pad replacement, and rotor resurfacing. Safety first, always.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">04</div>
+      <span class="service-icon">❄️</span>
+      <div class="service-name">AC and Heating</div>
+      <p class="service-desc">Recharge your AC or fix your heater before the next season hits. Fast, affordable climate system repairs.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">05</div>
+      <span class="service-icon">🛢️</span>
+      <div class="service-name">Oil Change</div>
+      <p class="service-desc">Quick oil changes using the right oil for your vehicle. In and out in under 30 minutes with a full inspection included.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-num">06</div>
+      <span class="service-icon">⚡</span>
+      <div class="service-name">Electrical Systems</div>
+      <p class="service-desc">Battery, alternator, starter, and full electrical diagnostics. We trace the problem and fix it right the first time.</p>
+    </div>
+  </div>
+</section>
+
+<section class="why" id="about">
+  <div class="section-eyebrow">Why Choose Us</div>
+  <h2 class="section-heading">30 Years of Know-How</h2>
+  <div class="why-grid">
+    <div class="why-item">
+      <div class="why-icon">🤝</div>
+      <div class="why-title">Honest Pricing</div>
+      <p class="why-desc">We quote before we work and stick to it. No surprise charges, no unnecessary repairs, no pressure.</p>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">🏆</div>
+      <div class="why-title">Expert Mechanics</div>
+      <p class="why-desc">ASE certified technicians with decades of hands on experience across all makes and models.</p>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">⏱</div>
+      <div class="why-title">Fast Turnaround</div>
+      <p class="why-desc">Most repairs are completed same day. We know your car is your lifeline and we treat it that way.</p>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials" id="testimonials">
+  <div class="section-eyebrow">Customer Reviews</div>
+  <h2 class="section-heading">What People Say</h2>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Ridge Auto has been my family's go to shop for 15 years. They are honest, fast, and always treat us like neighbors not customers."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">DM</div>
+        <div><div class="author-name">Denise M.</div><div class="author-loc">Indianapolis, IN</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Took my car in for a strange noise. They diagnosed it in 20 minutes and had it fixed by afternoon. Fair price and zero drama."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">TR</div>
+        <div><div class="author-name">Tony R.</div><div class="author-loc">Carmel, IN</div></div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <p class="testimonial-text">"Other shops quoted me $800. Ridge Auto fixed it for $200. I will never go anywhere else. Genuinely the most trustworthy mechanics I have ever met."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">KP</div>
+        <div><div class="author-name">Karen P.</div><div class="author-loc">Fishers, IN</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="contact">
+  <div class="contact-grid">
+    <div>
+      <div class="section-eyebrow">Get In Touch</div>
+      <h2 class="section-heading">Book a Service</h2>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-control" type="text" placeholder="Your name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input class="form-control" type="text" placeholder="(317) 555-0000" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vehicle</label>
+          <input class="form-control" type="text" placeholder="e.g. 2019 Honda Civic" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Describe the Issue</label>
+          <textarea class="form-control" placeholder="Tell us what is going on with your vehicle..." required></textarea>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">Request Appointment →</button>
+      </form>
+    </div>
+    <div class="contact-info">
+      <h3>Find Us</h3>
+      <div class="info-item">
+        <span class="info-icon">📍</span>
+        <div>
+          <div class="info-label">Address</div>
+          <div class="info-value">4821 Michigan Road<br>Indianapolis, IN 46208</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">📞</span>
+        <div>
+          <div class="info-label">Phone</div>
+          <div class="info-value">(317) 555-0100</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <span class="info-icon">🕐</span>
+        <div>
+          <div class="info-label">Hours</div>
+          <div class="info-value">Mon to Fri: 8am to 6pm<br>Saturday: 9am to 3pm<br>Sunday: Closed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <h2>Ready to Get Back on the Road?</h2>
+  <p>Call us today or book online. Same day appointments available for most services.</p>
+  <a href="tel:3175550100" class="cta-btn">📞 Call (317) 555-0100</a>
+</section>
+
+<footer>
+  <div class="footer-brand">Ridge<span>Auto</span></div>
+  <div>© 2026 Ridge Auto Repair · Indianapolis, Indiana · All rights reserved</div>
+</footer>
+
+<script>
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = '✓ Request Sent!';
+      btn.style.background = '#16a34a';
+      setTimeout(() => {
+        btn.textContent = 'Request Appointment →';
+        btn.style.background = '';
+        btn.disabled = false;
+        e.target.reset();
+      }, 3000);
+    }, 1200);
+  }
+</script>
+</body>
+</html>

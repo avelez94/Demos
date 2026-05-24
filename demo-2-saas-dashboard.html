@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse — SaaS Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0414;
+    --surface: #110820;
+    --card: #17102a;
+    --elevated: #1f163a;
+    --border: rgba(139,92,246,0.15);
+    --purple: #8b5cf6;
+    --purple-bright: #a78bfa;
+    --purple-dim: rgba(139,92,246,0.12);
+    --pink: #ec4899;
+    --cyan: #22d3ee;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --text: #f1eeff;
+    --muted: rgba(241,238,255,0.45);
+    --hint: rgba(241,238,255,0.2);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; }
+
+  /* Layout */
+  .shell { display: flex; height: 100vh; }
+
+  /* Sidebar */
+  .nav {
+    width: 220px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+  .nav-brand {
+    padding: 22px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .brand-dot {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: white;
+  }
+  .brand-name { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
+  .nav-section { padding: 16px 12px 8px; }
+  .nav-label {
+    font-size: 0.62rem; font-weight: 500; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--hint);
+    padding: 0 8px; margin-bottom: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px;
+    cursor: pointer; font-size: 0.83rem; color: var(--muted);
+    transition: all 0.15s; margin-bottom: 2px;
+    border: none; background: transparent; width: 100%;
+  }
+  .nav-item:hover { background: var(--purple-dim); color: var(--text); }
+  .nav-item.active { background: var(--purple-dim); color: var(--purple-bright); }
+  .nav-item .icon { font-size: 16px; width: 18px; text-align: center; }
+  .nav-badge {
+    margin-left: auto; background: var(--purple);
+    color: white; font-size: 0.6rem; padding: 2px 6px;
+    border-radius: 10px; font-weight: 600;
+  }
+  .nav-bottom {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding: 16px 12px;
+  }
+  .user-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .user-row:hover { background: var(--purple-dim); }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: white; flex-shrink: 0;
+  }
+  .user-name { font-size: 0.8rem; font-weight: 500; }
+  .user-role { font-size: 0.68rem; color: var(--muted); }
+
+  /* Main content */
+  .main {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 28px 32px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .main::-webkit-scrollbar { width: 4px; }
+  .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .page-title { font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em; }
+  .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .btn-primary {
+    background: var(--purple);
+    color: white; border: none; cursor: pointer;
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 500;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--purple-bright); transform: translateY(-1px); }
+
+  /* Stat cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+    cursor: default;
+  }
+  .stat-card:hover { border-color: rgba(139,92,246,0.35); transform: translateY(-2px); }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.06;
+    transform: translate(20px, -20px);
+  }
+  .stat-card.purple::before { background: var(--purple); }
+  .stat-card.pink::before { background: var(--pink); }
+  .stat-card.cyan::before { background: var(--cyan); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-icon {
+    width: 36px; height: 36px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; margin-bottom: 14px;
+  }
+  .stat-card.purple .stat-icon { background: rgba(139,92,246,0.15); }
+  .stat-card.pink .stat-icon { background: rgba(236,72,153,0.15); }
+  .stat-card.cyan .stat-icon { background: rgba(34,211,238,0.15); }
+  .stat-card.green .stat-icon { background: rgba(16,185,129,0.15); }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+  .stat-value {
+    font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em;
+    font-family: 'Inter', sans-serif;
+    margin-bottom: 8px;
+  }
+  .stat-change {
+    font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .stat-change.up { color: var(--green); }
+  .stat-change.down { color: var(--pink); }
+
+  /* Charts row */
+  .charts-row {
+    display: grid; grid-template-columns: 1fr 380px; gap: 16px;
+  }
+  .chart-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .card-title { font-size: 0.9rem; font-weight: 600; }
+  .card-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .period-tabs { display: flex; gap: 4px; }
+  .period-tab {
+    padding: 4px 10px; border-radius: 6px; font-size: 0.72rem;
+    cursor: pointer; border: none; background: transparent; color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .period-tab.active { background: var(--purple-dim); color: var(--purple-bright); }
+  .period-tab:hover { color: var(--text); }
+  .chart-wrap { height: 200px; position: relative; }
+
+  /* Donut */
+  .donut-wrap { height: 180px; display: flex; align-items: center; justify-content: center; position: relative; }
+  .donut-center {
+    position: absolute; text-align: center; pointer-events: none;
+  }
+  .donut-center-val { font-size: 1.5rem; font-weight: 600; }
+  .donut-center-label { font-size: 0.7rem; color: var(--muted); }
+  .legend { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+  .legend-label { color: var(--muted); flex: 1; }
+  .legend-val { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+
+  /* Table */
+  .table-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+  }
+  .table-card .card-header { padding: 20px 22px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    font-size: 0.68rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--hint); padding: 12px 22px;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    border-bottom: 1px solid rgba(139,92,246,0.06);
+    transition: background 0.12s;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--purple-dim); }
+  tbody td { padding: 13px 22px; font-size: 0.83rem; }
+  .customer-cell { display: flex; align-items: center; gap: 10px; }
+  .cust-avatar {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: white; flex-shrink: 0;
+  }
+  .cust-name { font-weight: 500; font-size: 0.83rem; }
+  .cust-email { font-size: 0.71rem; color: var(--muted); }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 500;
+  }
+  .status-badge.active { background: rgba(16,185,129,0.12); color: var(--green); }
+  .status-badge.trial { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .status-badge.churned { background: rgba(236,72,153,0.12); color: var(--pink); }
+  .status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .amount { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-row { grid-template-columns: 1fr; }
+    .nav { width: 60px; }
+    .nav-label, .brand-name, .user-name, .user-role, .nav-item span:not(.icon) { display: none; }
+    .nav-item { justify-content: center; }
+    .nav-badge { display: none; }
+    .nav-brand { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="brand-dot">P</div>
+      <span class="brand-name">Pulse</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <button class="nav-item active"><span class="icon">⊞</span><span>Dashboard</span></button>
+      <button class="nav-item"><span class="icon">👥</span><span>Customers</span><span class="nav-badge">3</span></button>
+      <button class="nav-item"><span class="icon">💳</span><span>Billing</span></button>
+      <button class="nav-item"><span class="icon">📊</span><span>Analytics</span></button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Settings</div>
+      <button class="nav-item"><span class="icon">⚙</span><span>Settings</span></button>
+      <button class="nav-item"><span class="icon">🔑</span><span>API Keys</span></button>
+    </div>
+
+    <div class="nav-bottom">
+      <div class="user-row">
+        <div class="avatar">AV</div>
+        <div>
+          <div class="user-name">Alante V.</div>
+          <div class="user-role">Admin</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <div class="topbar">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Welcome back, Alante. Here is what is happening today.</div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-badge" id="dateDisplay"></div>
+        <button class="btn-primary">+ New Report</button>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card purple">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">Monthly Revenue</div>
+        <div class="stat-value" id="mrr">$0</div>
+        <div class="stat-change up">↑ 18.2% from last month</div>
+      </div>
+      <div class="stat-card pink">
+        <div class="stat-icon">👤</div>
+        <div class="stat-label">Active Users</div>
+        <div class="stat-value" id="users">0</div>
+        <div class="stat-change up">↑ 241 this week</div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-icon">📦</div>
+        <div class="stat-label">New Orders</div>
+        <div class="stat-value" id="orders">0</div>
+        <div class="stat-change up">↑ 7.4% vs yesterday</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">💚</div>
+        <div class="stat-label">Churn Rate</div>
+        <div class="stat-value" id="churn">0%</div>
+        <div class="stat-change down">↓ 0.3% improvement</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Revenue Overview</div>
+            <div class="card-sub">Monthly recurring revenue trend</div>
+          </div>
+          <div class="period-tabs">
+            <button class="period-tab active">6M</button>
+            <button class="period-tab">1Y</button>
+            <button class="period-tab">All</button>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Plan Distribution</div>
+            <div class="card-sub">Active subscriptions by plan</div>
+          </div>
+        </div>
+        <div class="donut-wrap">
+          <canvas id="donutChart" width="180" height="180"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-val">1,284</div>
+            <div class="donut-center-label">total users</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div><span class="legend-label">Pro Plan</span><span class="legend-val">648</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ec4899"></div><span class="legend-label">Starter Plan</span><span class="legend-val">412</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div><span class="legend-label">Enterprise</span><span class="legend-val">224</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Recent Customers</div>
+          <div class="card-sub">Latest signups and activity</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Plan</th>
+            <th>Status</th>
+            <th>Joined</th>
+            <th>MRR</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="customer-cell"><div class="cust-avatar">JK</div><div><div class="cust-name">James Kirby</div><div class="cust-email">james@kirbystudio.co</div></div></div></td>
+            <td>Pro</td>
+            <td><span class="status-badge active"><span class="status-dot"></span>Active</span></td>
+            <td style="color:var(--muted);font-size:0.78rem">May 14, 2026</td>
+            <td><span class="amount">$49/mo</span></td>
+          </tr>
+          <tr>
+            <td><div class="customer-cell"><div class="cust-avatar" style="background:linear-gradient(135deg,#22d3ee,#0e7490)">SR</div><div><div class="cust-name">Sofia Reyes</div><div class="cust-email">sofia@flowhq.io</div></div></div></td>
+            <td>Enterprise</td>
+            <td><span class="status-badge active"><span class="status-dot"></span>Active</span></td>
+            <td style="color:var(--muted);font-size:0.78rem">May 10, 2026</td>
+            <td><span class="amount">$299/mo</span></td>
+          </tr>
+          <tr>
+            <td><div class="customer-cell"><div class="cust-avatar" style="background:linear-gradient(135deg,#f59e0b,#b45309)">MP</div><div><div class="cust-name">Marcus Park</div><div class="cust-email">m.park@designco.com</div></div></div></td>
+            <td>Starter</td>
+            <td><span class="status-badge trial"><span class="status-dot"></span>Trial</span></td>
+            <td style="color:var(--muted);font-size:0.78rem">May 17, 2026</td>
+            <td><span class="amount">$19/mo</span></td>
+          </tr>
+          <tr>
+            <td><div class="customer-cell"><div class="cust-avatar" style="background:linear-gradient(135deg,#10b981,#065f46)">AL</div><div><div class="cust-name">Aisha Laurent</div><div class="cust-email">aisha@laurent.agency</div></div></div></td>
+            <td>Pro</td>
+            <td><span class="status-badge active"><span class="status-dot"></span>Active</span></td>
+            <td style="color:var(--muted);font-size:0.78rem">Apr 28, 2026</td>
+            <td><span class="amount">$49/mo</span></td>
+          </tr>
+          <tr>
+            <td><div class="customer-cell"><div class="cust-avatar" style="background:linear-gradient(135deg,#ec4899,#9d174d)">TW</div><div><div class="cust-name">Tom Walsh</div><div class="cust-email">tom@walshbuilds.dev</div></div></div></td>
+            <td>Starter</td>
+            <td><span class="status-badge churned"><span class="status-dot"></span>Churned</span></td>
+            <td style="color:var(--muted);font-size:0.78rem">Mar 3, 2026</td>
+            <td><span class="amount">$0/mo</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+
+  function animateCount(el, target, prefix='', suffix='', duration=1200) {
+    const start = performance.now();
+    const update = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      el.textContent = prefix + Math.round(target * ease).toLocaleString() + suffix;
+      if (p < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  }
+
+  setTimeout(() => {
+    animateCount(document.getElementById('mrr'), 24840, '$', '');
+    animateCount(document.getElementById('users'), 1284, '', '');
+    animateCount(document.getElementById('orders'), 347, '', '');
+    document.getElementById('churn').textContent = '2.1%';
+  }, 300);
+
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+      datasets: [{
+        data: [14200, 16800, 18400, 20100, 22300, 24840],
+        borderColor: '#8b5cf6',
+        backgroundColor: (ctx) => {
+          const g = ctx.chart.ctx.createLinearGradient(0,0,0,200);
+          g.addColorStop(0, 'rgba(139,92,246,0.25)');
+          g.addColorStop(1, 'rgba(139,92,246,0)');
+          return g;
+        },
+        borderWidth: 2.5,
+        pointBackgroundColor: '#8b5cf6',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#1f163a',
+        borderColor: 'rgba(139,92,246,0.3)',
+        borderWidth: 1,
+        titleColor: '#a78bfa',
+        bodyColor: '#f1eeff',
+        callbacks: { label: ctx => ' $' + ctx.raw.toLocaleString() }
+      }},
+      scales: {
+        x: { grid: { color: 'rgba(139,92,246,0.06)' }, ticks: { color: 'rgba(241,238,255,0.4)', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(139,92,246,0.06)' }, ticks: { color: 'rgba(241,238,255,0.4)', font: { size: 11 }, callback: v => '$' + (v/1000).toFixed(0) + 'k' } }
+      }
+    }
+  });
+
+  const dctx = document.getElementById('donutChart').getContext('2d');
+  new Chart(dctx, {
+    type: 'doughnut',
+    data: {
+      datasets: [{
+        data: [648, 412, 224],
+        backgroundColor: ['#8b5cf6','#ec4899','#22d3ee'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: false, cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#1f163a',
+        borderColor: 'rgba(139,92,246,0.3)',
+        borderWidth: 1,
+        titleColor: '#a78bfa',
+        bodyColor: '#f1eeff'
+      }}
+    }
+  });
+
+  document.querySelectorAll('.period-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.period-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ember Store — Checkout Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c0c;
+    --surface: #141414;
+    --card: #1c1c1c;
+    --border: rgba(255,102,0,0.18);
+    --orange: #ff6600;
+    --orange-bright: #ff8533;
+    --orange-dim: rgba(255,102,0,0.1);
+    --text: #f5f0eb;
+    --muted: rgba(245,240,235,0.5);
+    --hint: rgba(245,240,235,0.22);
+    --green: #22c55e;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+  .app { height: 100vh; display: flex; overflow: hidden; }
+
+  /* Store panel */
+  .store {
+    flex: 1; overflow-y: auto; padding: 32px;
+    background: var(--bg);
+  }
+  .store::-webkit-scrollbar { width: 3px; }
+  .store::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .store-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .store-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem; font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .store-logo span { color: var(--orange); }
+  .cart-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-size: 0.85rem; cursor: pointer;
+    transition: border-color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .cart-btn:hover { border-color: var(--orange); }
+  .cart-count {
+    background: var(--orange); color: white;
+    width: 18px; height: 18px; border-radius: 50%;
+    font-size: 0.65rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 20px;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px; margin-bottom: 36px;
+  }
+
+  .product-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  }
+  .product-card:hover { border-color: rgba(255,102,0,0.4); transform: translateY(-3px); }
+  .product-card.selected { border-color: var(--orange); }
+  .product-img {
+    height: 140px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .product-img.p1 { background: linear-gradient(135deg, #1a0a00, #2d1200); }
+  .product-img.p2 { background: linear-gradient(135deg, #0a0a1a, #12102d); }
+  .product-img.p3 { background: linear-gradient(135deg, #001a0a, #0d2d12); }
+  .product-img.p4 { background: linear-gradient(135deg, #1a0014, #2d0020); }
+  .product-info { padding: 16px; }
+  .product-name { font-family: 'Syne', sans-serif; font-size: 0.92rem; font-weight: 600; margin-bottom: 4px; }
+  .product-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+  .product-footer { display: flex; align-items: center; justify-content: space-between; }
+  .product-price { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--orange); }
+  .add-btn {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--orange); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; font-weight: 600;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .add-btn:hover { background: var(--orange-bright); }
+  .add-btn:active { transform: scale(0.9); }
+
+  /* Checkout panel */
+  .checkout {
+    width: 380px; flex-shrink: 0;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .checkout-header {
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .checkout-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem; font-weight: 700; margin-bottom: 2px;
+  }
+  .checkout-step {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em;
+  }
+
+  /* Step indicators */
+  .steps {
+    display: flex; gap: 0; margin-top: 16px;
+  }
+  .step-item {
+    flex: 1; text-align: center; position: relative;
+    padding-bottom: 10px;
+  }
+  .step-item::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px; background: var(--border); border-radius: 2px;
+  }
+  .step-item.active::after { background: var(--orange); }
+  .step-item.done::after { background: var(--green); }
+  .step-num {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem;
+    color: var(--hint); letter-spacing: 0.08em;
+  }
+  .step-item.active .step-num { color: var(--orange); }
+  .step-item.done .step-num { color: var(--green); }
+
+  .checkout-body { flex: 1; overflow-y: auto; padding: 24px 28px; }
+  .checkout-body::-webkit-scrollbar { width: 3px; }
+
+  /* Order summary */
+  .order-items { margin-bottom: 20px; }
+  .order-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid rgba(255,102,0,0.07);
+  }
+  .order-item:last-child { border-bottom: none; }
+  .item-emoji { font-size: 1.5rem; width: 36px; text-align: center; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 0.83rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-qty { font-size: 0.72rem; color: var(--muted); }
+  .item-price { font-family: 'DM Mono', monospace; font-size: 0.85rem; }
+  .remove-item { background: none; border: none; color: var(--hint); cursor: pointer; font-size: 16px; transition: color 0.15s; padding: 4px; }
+  .remove-item:hover { color: #ff4444; }
+
+  .order-totals { border-top: 1px solid var(--border); padding-top: 16px; margin-bottom: 20px; }
+  .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.83rem; color: var(--muted); }
+  .total-row.final { color: var(--text); font-weight: 600; font-size: 0.95rem; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .total-row .amount { font-family: 'DM Mono', monospace; }
+
+  /* Payment form */
+  .form-field { margin-bottom: 14px; }
+  .form-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 5px; display: block; }
+  .form-input {
+    width: 100%; background: var(--card);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+    outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: rgba(255,102,0,0.4); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card-icons { display: flex; gap: 6px; margin-bottom: 14px; }
+  .card-icon {
+    padding: 4px 10px; border-radius: 5px; font-size: 0.65rem;
+    border: 1px solid var(--border); color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .secure-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.7rem; color: var(--hint); margin-bottom: 16px;
+    font-family: 'DM Mono', monospace; letter-spacing: 0.06em;
+  }
+
+  .pay-btn {
+    width: 100%;
+    background: var(--orange);
+    color: white; border: none; cursor: pointer;
+    padding: 14px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .pay-btn:hover { background: var(--orange-bright); transform: translateY(-1px); }
+  .pay-btn:active { transform: scale(0.99); }
+
+  /* Success state */
+  .success-state {
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    padding: 24px 0;
+    animation: fadeIn 0.5s ease forwards;
+  }
+  .success-icon {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(34,197,94,0.15);
+    border: 2px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin-bottom: 20px;
+    animation: popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+  }
+  @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .success-title { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+  .success-sub { font-size: 0.83rem; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .order-id {
+    font-family: 'DM Mono', monospace; font-size: 0.75rem;
+    color: var(--orange); padding: 8px 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  .reset-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); padding: 10px 20px; border-radius: 8px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.83rem;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+  .empty-cart { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; color: var(--hint); gap: 10px; text-align: center; }
+  .empty-cart-icon { font-size: 2.5rem; opacity: 0.3; }
+  .empty-cart p { font-size: 0.83rem; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="store">
+    <div class="store-header">
+      <div class="store-logo">Ember<span>.</span></div>
+      <button class="cart-btn" id="cartBtn">
+        🛒 Cart <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+
+    <div class="section-title">Digital Products</div>
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+
+  <div class="checkout">
+    <div class="checkout-header">
+      <div class="checkout-title">Checkout</div>
+      <div class="checkout-step" id="checkoutStep">Add items to get started</div>
+      <div class="steps">
+        <div class="step-item active" id="step1"><div class="step-num">Cart</div></div>
+        <div class="step-item" id="step2"><div class="step-num">Payment</div></div>
+        <div class="step-item" id="step3"><div class="step-num">Confirm</div></div>
+      </div>
+    </div>
+    <div class="checkout-body" id="checkoutBody">
+      <div class="empty-cart">
+        <div class="empty-cart-icon">🛍</div>
+        <p>Add products from the store to start your order</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const products = [
+  { id:1, emoji:'⚡', bg:'p1', name:'Starter Kit', desc:'Everything you need to launch your first SaaS. Templates, checklists, and launch guide.', price:29 },
+  { id:2, emoji:'🎨', bg:'p2', name:'UI Component Pack', desc:'50+ production ready React components built with Tailwind CSS and fully customizable.', price:49 },
+  { id:3, emoji:'🚀', bg:'p3', name:'Launch Playbook', desc:'Step by step guide to taking your product from zero to first 100 paying customers.', price:39 },
+  { id:4, emoji:'💡', bg:'p4', name:'AI Prompt Library', desc:'500+ battle tested prompts for developers, marketers, and founders using Claude.', price:19 },
+];
+
+let cart = [];
+let currentView = 'cart';
+
+function renderProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = products.map(p => `
+    <div class="product-card" id="pc${p.id}">
+      <div class="product-img ${p.bg}">${p.emoji}</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <span class="product-price">$${p.price}</span>
+          <button class="add-btn" onclick="addToCart(${p.id})">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  const existing = cart.find(c => c.id === id);
+  if (existing) { existing.qty++; }
+  else { cart.push({ ...product, qty: 1 }); }
+  updateCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  updateCart();
+}
+
+function updateCart() {
+  const total = cart.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+  if (cart.length > 0 && currentView === 'cart') renderCartView();
+  else if (cart.length === 0) {
+    currentView = 'cart';
+    setSteps(1);
+    document.getElementById('checkoutStep').textContent = 'Add items to get started';
+    document.getElementById('checkoutBody').innerHTML = `<div class="empty-cart"><div class="empty-cart-icon">🛍</div><p>Add products from the store to start your order</p></div>`;
+  }
+}
+
+function renderCartView() {
+  currentView = 'cart';
+  setSteps(1);
+  document.getElementById('checkoutStep').textContent = `Step 1 of 3 · Review Order`;
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const tax = Math.round(subtotal * 0.08);
+  document.getElementById('checkoutBody').innerHTML = `
+    <div class="order-items">
+      ${cart.map(i => `
+        <div class="order-item">
+          <span class="item-emoji">${i.emoji}</span>
+          <div class="item-info">
+            <div class="item-name">${i.name}</div>
+            <div class="item-qty">Qty: ${i.qty}</div>
+          </div>
+          <span class="item-price">$${i.price * i.qty}</span>
+          <button class="remove-item" onclick="removeFromCart(${i.id})">×</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="order-totals">
+      <div class="total-row"><span>Subtotal</span><span class="amount">$${subtotal}</span></div>
+      <div class="total-row"><span>Tax (8%)</span><span class="amount">$${tax}</span></div>
+      <div class="total-row final"><span>Total</span><span class="amount">$${subtotal + tax}</span></div>
+    </div>
+    <button class="pay-btn" onclick="renderPaymentView(${subtotal + tax})">Continue to Payment →</button>
+  `;
+}
+
+function renderPaymentView(total) {
+  currentView = 'payment';
+  setSteps(2);
+  document.getElementById('checkoutStep').textContent = `Step 2 of 3 · Payment Details`;
+  document.getElementById('checkoutBody').innerHTML = `
+    <div class="card-icons">
+      <span class="card-icon">VISA</span>
+      <span class="card-icon">MC</span>
+      <span class="card-icon">AMEX</span>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" type="text" placeholder="you@example.com" />
+    </div>
+    <div class="form-field">
+      <label class="form-label">Card Number</label>
+      <input class="form-input" type="text" placeholder="4242 4242 4242 4242" id="cardNum" />
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label class="form-label">Expiry</label>
+        <input class="form-input" type="text" placeholder="MM / YY" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">CVC</label>
+        <input class="form-input" type="text" placeholder="•••" />
+      </div>
+    </div>
+    <div class="form-field">
+      <label class="form-label">Name on Card</label>
+      <input class="form-input" type="text" placeholder="Full name" />
+    </div>
+    <div class="secure-badge">🔒 Secured by Stripe · 256-bit SSL</div>
+    <button class="pay-btn" onclick="processPayment()">
+      Pay $${total} Now
+    </button>
+  `;
+
+  document.getElementById('cardNum').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'').substring(0,16);
+    this.value = v.replace(/(.{4})/g,'$1 ').trim();
+  });
+}
+
+function processPayment() {
+  setSteps(2, true);
+  document.getElementById('checkoutStep').textContent = `Processing payment...`;
+  document.getElementById('checkoutBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;padding:40px 0;gap:16px;">
+      <div style="width:48px;height:48px;border-radius:50%;border:3px solid rgba(255,102,0,0.2);border-top-color:#ff6600;animation:spin 0.8s linear infinite;"></div>
+      <p style="color:var(--muted);font-size:0.85rem;">Confirming with Stripe...</p>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  `;
+  setTimeout(() => renderSuccess(), 2000);
+}
+
+function renderSuccess() {
+  currentView = 'success';
+  setSteps(3, false, true);
+  document.getElementById('checkoutStep').textContent = `Order Complete`;
+  const orderId = 'ORD' + Math.random().toString(36).substring(2,8).toUpperCase();
+  document.getElementById('checkoutBody').innerHTML = `
+    <div class="success-state">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Payment Successful!</div>
+      <div class="success-sub">Your order has been confirmed. A receipt has been sent to your email via Resend.</div>
+      <div class="order-id">Order #${orderId}</div>
+      <button class="reset-btn" onclick="resetStore()">← Continue Shopping</button>
+    </div>
+  `;
+}
+
+function resetStore() {
+  cart = [];
+  currentView = 'cart';
+  setSteps(1);
+  document.getElementById('cartCount').textContent = '0';
+  document.getElementById('checkoutStep').textContent = 'Add items to get started';
+  document.getElementById('checkoutBody').innerHTML = `<div class="empty-cart"><div class="empty-cart-icon">🛍</div><p>Add products from the store to start your order</p></div>`;
+}
+
+function setSteps(active, processing=false, done=false) {
+  [1,2,3].forEach(n => {
+    const el = document.getElementById(`step${n}`);
+    el.className = 'step-item';
+    if (n < active) el.classList.add('done');
+    else if (n === active) el.classList.add('active');
+    if (done && n === 3) el.classList.add('done');
+  });
+}
+
+renderProducts();
+</script>
+</body>
+</html>
